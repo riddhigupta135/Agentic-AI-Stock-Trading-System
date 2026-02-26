@@ -245,8 +245,21 @@ def create_ui():
 
 def launch_ui():
     """Launch the Gradio UI."""
+    import os
     demo = create_ui()
-    demo.launch(server_name="127.0.0.1", server_port=7860, share=False, theme=gr.themes.Soft())
+    # Check for environment variable, otherwise try 7860, fallback to 7861
+    port = int(os.getenv("GRADIO_SERVER_PORT", "7860"))
+    
+    # Try the requested port, fallback to next available
+    for attempt_port in [port, 7861, 7862, 7863]:
+        try:
+            print(f"Attempting to launch on port {attempt_port}...")
+            demo.launch(server_name="127.0.0.1", server_port=attempt_port, share=False, theme=gr.themes.Soft())
+            break
+        except OSError as e:
+            if attempt_port == 7863:  # Last attempt
+                raise e
+            print(f"Port {attempt_port} in use, trying next port...")
 
 
 if __name__ == "__main__":
